@@ -299,13 +299,15 @@ class Menu extends AbstractHelper
             $myIndent = $indent . str_repeat('        ', $depth);
 
             if ($depth > $prevDepth) {
-                // start new ul tag
-                if ($ulClass && $depth ==  0) {
-                    $ulClass = ' class="' . $ulClass . '"';
-                } else {
-                    $ulClass = '';
+                $ulClassString = '';
+                if (is_array($ulClass) && isset($ulClass[$depth])) {
+                    $ulClassString = ' class="' . $ulClass[$depth] . '"';
                 }
-                $html .= $myIndent . '<ul' . $ulClass . '>' . self::EOL;
+                // start new ul tag
+                if (is_string($ulClass) && $depth ==  0) {
+                    $ulClassString = ' class="' . $ulClass . '"';
+                }
+                $html .= $myIndent . '<ul' . $ulClassString . '>' . self::EOL;
             } elseif ($prevDepth > $depth) {
                 // close li/ul tags until we're at current depth
                 for ($i = $prevDepth; $i > $depth; $i--) {
@@ -533,7 +535,11 @@ class Menu extends AbstractHelper
         }
 
         if (isset($options['ulClass']) && $options['ulClass'] !== null) {
-            $options['ulClass'] = (string) $options['ulClass'];
+            if (!is_array($options['ulClass'])) {
+                $options['ulClass'] = (string) $options['ulClass'];
+            } else {
+                $options['ulClass'] = array_map('strval', $options['ulClass']);
+            }
         } else {
             $options['ulClass'] = $this->getUlClass();
         }
