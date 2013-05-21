@@ -14,6 +14,7 @@ use Zend\Navigation\AbstractContainer;
 use Zend\Navigation\Page\AbstractPage;
 use Zend\View;
 use Zend\View\Exception;
+use Zend\Stdlib\ArrayUtils;
 
 /**
  * Helper for rendering menus from navigation containers
@@ -304,7 +305,7 @@ class Menu extends AbstractHelper
                     $ulClassString = ' class="' . $ulClass[$depth] . '"';
                 }
                 // start new ul tag
-                if (is_string($ulClass) && $depth ==  0) {
+                if (is_string($ulClass) && $depth === $minDepth) {
                     $ulClassString = ' class="' . $ulClass . '"';
                 }
                 $html .= $myIndent . '<ul' . $ulClassString . '>' . self::EOL;
@@ -489,10 +490,15 @@ class Menu extends AbstractHelper
         }
 
         // get attribs for element
-        $attribs = array(
-            'id'     => $page->getId(),
-            'title'  => $title,
-        );
+        $attribs = array();
+        if (isset($page->attributes)) {
+            $attribs = $page->get('attributes');
+            if (! ArrayUtils::isHashTable($attribs)) {
+                $attribs = array();
+            }
+        }
+        $attribs['id'] = $page->getId();
+        $attribs['title'] = $title;
 
         if ($addClassToListItem === false) {
             $attribs['class'] = $page->getClass();
