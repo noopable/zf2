@@ -17,6 +17,7 @@ use Zend\Http\Response;
 use Zend\Mvc\Controller\ControllerManager;
 use Zend\Mvc\Controller\PluginManager;
 use Zend\Mvc\Controller\Plugin\Forward as ForwardPlugin;
+use Zend\Mvc\ModuleRouteListener;
 use Zend\Mvc\MvcEvent;
 use Zend\Mvc\Router\RouteMatch;
 use Zend\Stdlib\CallbackHandler;
@@ -222,5 +223,28 @@ class ForwardTest extends TestCase
     public function testSetListenersToDetachIsFluent()
     {
         $this->assertSame($this->plugin, $this->plugin->setListenersToDetach(array()));
+    }
+
+    /**
+     * compatibility with ModuleRouteListener
+     *
+     * @see Zend\Mvc\ModuleRouteListener
+     */
+    public function testShorNamedController()
+    {
+        $shortNamedController = 'forward-fq';
+        $origCtlKey = ModuleRouteListener::ORIGINAL_CONTROLLER;
+        $params = array(
+            ModuleRouteListener::MODULE_NAMESPACE => 'ZendTest\Mvc\Controller\TestAsset',
+            'action' => 'test',
+            'param1' => 'foo',
+        );
+        $result = $this->plugin->dispatch($shortNamedController, $params);
+        $this->assertInternalType('array', $result);
+        $this->assertArrayHasKey('content', $result);
+        $this->assertEquals('ZendTest\Mvc\Controller\TestAsset\ForwardFqController::testAction', $result['content']);
+        $this->assertArrayHasKey('params', $result);
+        $this->assertArrayHasKey($origCtlKey, $result['params']);
+        $this->assertEquals($shortNamedController, $result['params'][$origCtlKey]);
     }
 }
